@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial;
+            width: 250px;
+            padding: 10px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 15px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h3>Time Limit Settings</h3>
+
+    <label>
+        Website URL
+        <input type="text" id="url" placeholder="https://www.facebook.com/">
+    </label>
+
+    <label>
+        Time Limit (minutes)
+        <input type="number" id="time">
+    </label>
+
+    <label>
+        <input type="radio" name="action" value="notify" checked>
+        Show Notification
+    </label>
+
+    <label>
+        <input type="radio" name="action" value="block">
+        Prevent Opening
+    </label>
+
+    <button id="save">Save</button>
+
+    <script src="popup.js"></script>
+
+</body>
+
+</html>

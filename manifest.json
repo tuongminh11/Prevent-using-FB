@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "URL Time Tracker",
+  "version": "1.0",
+  "description": "Track time spent on a specific URL and alert when time exceeds limit.",
+  
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms",
+    "notifications"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "hello_extensions.png"
+  }
+}
