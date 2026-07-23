@@ -1,73 +1,68 @@
-# Giới hạn thời gian mạng xã hội — Edge Extension
+# Limit Social Time Usage — Edge Extension
 
-Extension giới hạn thời gian sử dụng Facebook, Instagram (và các trang bạn tự thêm).
-Khi hết giờ, tab sẽ tự động chuyển sang trang nhắn tin của mạng xã hội đó
-(VD: `facebook.com/messages`) thay vì chặn hoàn toàn.
+This extension limits daily usage time for Facebook, Instagram, and any other sites you add.
+When the daily limit is reached, tabs will automatically redirect to the site's messaging page
+(e.g. `facebook.com/messages`) instead of blocking the page completely.
 
-## Tính năng
+## Features
 
-- ✅ Theo dõi thời gian sử dụng theo từng trang (độ chính xác ~1 phút)
-- ✅ Tự động chuyển sang trang tin nhắn khi hết giới hạn trong ngày
-- ✅ Lưu toàn bộ dữ liệu (cấu hình + lịch sử dùng hàng ngày) vào **IndexedDB**
-  của trình duyệt — không gửi lên server nào cả
-- ✅ Thay đổi giới hạn thời gian bất cứ lúc nào (trang Options)
-- ✅ Thêm/sửa/xoá trang mạng xã hội khác + URL trang nhắn tin tương ứng
-- ✅ Biểu đồ thống kê theo **ngày (7 ngày gần nhất)**, **tuần (12 tuần)**,
-  **tháng (12 tháng)** — vẽ bằng canvas, không cần thư viện ngoài
+- ✅ Track usage time per site with minute-level accuracy
+- ✅ Automatically redirect to the messaging page when the daily limit is reached
+- ✅ Store all data (settings + daily history) in **IndexedDB** locally — no server upload
+- ✅ Change daily limits anytime in the Options page
+- ✅ Add/edit/remove social sites and their message URLs
+- ✅ View usage charts by **day (last 7 days)**, **week (12 weeks)**, and **month (12 months)** — drawn with canvas, no external chart library
 
-## Cấu trúc project
+## Project Structure
 
 ```
 social-time-limiter/
 ├── manifest.json      # Manifest V3
-├── background.js      # Service worker: đếm giờ + chuyển hướng
-├── db.js               # Module dùng chung thao tác IndexedDB
-├── popup.html/.js      # Popup khi bấm icon extension
-├── options.html/.js    # Trang quản lý + biểu đồ thống kê
-└── icons/               # Icon 16/32/48/128px
+├── background.js      # Service worker: usage tracking + redirect
+├── db.js              # Shared IndexedDB helper module
+├── popup.html/.js     # Popup shown when clicking the extension icon
+├── options.html/.js   # Management and statistics page
+└── icons/             # Icon files: 16/32/48/128px
 ```
 
-## Cách cài vào Microsoft Edge (chế độ Developer / Unpacked)
+## Install in Microsoft Edge (Developer / Unpacked mode)
 
-1. Giải nén thư mục `social-time-limiter` ra đâu đó trên máy (đừng xoá sau khi cài,
-   Edge sẽ đọc trực tiếp từ thư mục này).
-2. Mở Edge, vào địa chỉ: `edge://extensions/`
-3. Bật **"Chế độ nhà phát triển" / "Developer mode"** (góc dưới trái).
-4. Bấm **"Tải tiện ích đã giải nén" / "Load unpacked"**.
-5. Chọn thư mục `social-time-limiter` (thư mục chứa file `manifest.json`).
-6. Extension sẽ xuất hiện trên thanh công cụ — ghim lại để dễ truy cập.
+1. Unzip the `social-time-limiter` folder somewhere on your computer (do not delete it after installing,
+   Edge will load the extension directly from that folder).
+2. Open Edge and go to `edge://extensions/`
+3. Enable **Developer mode**.
+4. Click **Load unpacked**.
+5. Select the `social-time-limiter` folder (the folder containing `manifest.json`).
+6. The extension will appear in the toolbar — pin it for easier access.
 
-## Cách dùng
+## Usage
 
-- **Popup** (bấm icon): xem nhanh thời gian đã dùng hôm nay của từng trang
-  đang bật, có thanh tiến trình so với giới hạn.
-- **Trang Quản lý & Thống kê** (bấm nút trong popup, hoặc chuột phải icon →
-  "Tuỳ chọn phần mở rộng"):
-  - Tab **"Quản lý trang"**: bật/tắt, sửa tên, domain, URL trang nhắn tin,
-    giới hạn phút/ngày ngay trên bảng (tự lưu khi thay đổi); thêm trang mới
-    ở hàng dưới cùng.
-  - Tab **"Thống kê"**: chọn trang + khoảng thời gian (ngày/tuần/tháng) để
-    xem biểu đồ cột thời gian sử dụng, kèm tổng/trung bình/cao nhất.
+- **Popup** (click the icon): quickly view today's usage for each active tracked site
+  with a progress bar showing the daily limit.
+- **Management & Statistics page** (open from the popup or right-click the icon →
+  "Manage extension"):
+  - The **Manage Sites** tab lets you enable/disable sites, edit name, domain, message URL,
+    and daily limit directly in the table; changes save automatically. Add new sites using the row at the bottom.
+  - The **Statistics** tab lets you choose a site and time range (day/week/month)
+    to view a usage chart, plus total/average/highest summary values.
 
-## Mặc định sẵn có
+## Default sites
 
-| Trang     | Domain        | Giới hạn mặc định | Trang nhắn tin                          |
-| --------- | ------------- | ----------------- | --------------------------------------- |
-| Facebook  | facebook.com  | 30 phút/ngày      | https://www.facebook.com/messages       |
-| Instagram | instagram.com | 30 phút/ngày      | https://www.instagram.com/direct/inbox/ |
+| Site      | Domain        | Default limit    | Messages URL                             |
+| --------- | ------------- | ---------------- | ---------------------------------------- |
+| Facebook  | facebook.com  | 30 minutes/day   | https://www.facebook.com/messages        |
+| Instagram | instagram.com | 30 minutes/day   | https://www.instagram.com/direct/inbox/  |
 
-Bạn có thể sửa hoặc xoá 2 trang này, và thêm bao nhiêu trang tuỳ ý
-(VD: TikTok, X/Twitter, YouTube...) — chỉ cần nhập domain và URL trang nhắn
-tin/hộp thư tương ứng của trang đó.
+You can edit or remove these default sites and add as many custom sites as you want
+(e.g. TikTok, X/Twitter, YouTube). Just enter the domain and the corresponding messages URL.
 
-## Ghi chú kỹ thuật
+## Technical notes
 
-- Thời gian chỉ được tính khi **tab đang active** VÀ **cửa sổ trình duyệt
-  đang được focus**, dùng `chrome.tabs`/`chrome.windows` API.
-- Việc cộng dồn thời gian dùng `chrome.alarms` (chu kỳ 1 phút) vì Manifest V3
-  service worker có thể bị trình duyệt tạm ngưng — `alarms` đảm bảo bộ đếm
-  vẫn hoạt động chính xác dù service worker "ngủ".
-- Khi tổng thời gian trong ngày ≥ giới hạn, extension sẽ tự `chrome.tabs.update`
-  toàn bộ tab đang mở của trang đó sang URL trang nhắn tin.
-- Dữ liệu lưu trong IndexedDB riêng của extension (`socialTimeLimiterDB`),
-  tồn tại lâu dài trên máy, không đồng bộ qua tài khoản Edge.
+- Usage is counted only when the tracked tab is active and the browser window is focused,
+  using the `chrome.tabs` and `chrome.windows` APIs.
+- The extension uses `chrome.alarms` with a 1-minute interval because Manifest V3
+  service workers can be suspended by the browser — alarms ensure tracking remains accurate while the worker sleeps.
+- When daily usage reaches the limit, the extension will `chrome.tabs.update`
+  any open tabs for that site to the configured messages URL.
+- Data is stored in the extension's IndexedDB (`socialTimeLimiterDB`) locally on your device,
+  not synced to your Edge account.
