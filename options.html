@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>Limit Social Media Time</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --card: #1a2133;
+    --card-2: #212a42;
+    --accent: #5b8cff;
+    --accent-warn: #ff6b6b;
+    --accent-ok: #34d399;
+    --text: #e9edf5;
+    --text-dim: #9aa4b8;
+    --border: #262f47;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 24px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .subtitle { color: var(--text-dim); font-size: 13px; margin-bottom: 24px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 14px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 6px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; }
+  td input[type="text"], td input[type="number"], td input[type="url"] {
+    width: 100%;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  td.toggle-cell, td.action-cell { white-space: nowrap; }
+  .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background: #3a4362; border-radius: 20px; transition: .2s; }
+  .slider:before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
+  input:checked + .slider { background: var(--accent); }
+  input:checked + .slider:before { transform: translateX(18px); }
+
+  .icon-btn {
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+  .icon-btn:hover { background: #2a3350; color: var(--text); }
+  .icon-btn.danger:hover { color: var(--accent-warn); }
+
+  .btn {
+    padding: 9px 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn:hover { opacity: .9; }
+  .btn.secondary { background: var(--card-2); border: 1px solid var(--border); }
+  .btn.small { padding: 6px 12px; font-size: 12px; }
+
+  .add-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .add-row input {
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  #newName { width: 130px; }
+  #newDomain { width: 150px; }
+  #newMsgUrl { flex: 1; min-width: 200px; }
+  #newLimit { width: 90px; }
+
+  .chart-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  select {
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .seg { display: flex; background: var(--card-2); border-radius: 8px; padding: 3px; }
+  .seg button {
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .seg button.active { background: var(--accent); color: white; }
+
+  #chartWrap { width: 100%; overflow-x: auto; }
+  #chartCanvas { width: 100%; height: 300px; display: block; }
+
+  .summary-row { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  .summary-box {
+    background: var(--card-2);
+    border-radius: 10px;
+    padding: 10px 16px;
+    min-width: 130px;
+  }
+  .summary-box .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
+  .summary-box .value { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+  .toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent-ok);
+    color: #06281c;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Limit Social Media Time</h1>
+  <div class="subtitle">Manage tracked sites, set time limits, and view usage statistics.</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="manage">Manage Sites</button>
+    <button class="tab-btn" data-tab="stats">Statistics</button>
+  </div>
+
+  <div id="panel-manage" class="panel active">
+    <div class="card">
+      <h2>Tracked Sites</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Enabled</th>
+            <th>Name</th>
+            <th>Domain</th>
+            <th>Messages URL</th>
+            <th>Limit (minutes/day)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="sitesBody"></tbody>
+      </table>
+
+      <div class="add-row">
+        <input id="newName" type="text" placeholder="Name (e.g., TikTok)" />
+        <input id="newDomain" type="text" placeholder="Domain (e.g., tiktok.com)" />
+        <input id="newMsgUrl" type="url" placeholder="Messages URL (e.g., https://www.tiktok.com/messages)" />
+        <input id="newLimit" type="number" placeholder="Minutes/day" min="1" value="30" />
+        <button class="btn" id="addSiteBtn">+ Add Site</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-stats" class="panel">
+    <div class="card">
+      <h2>Usage Chart</h2>
+      <div class="chart-controls">
+        <select id="siteSelect"></select>
+        <div class="seg" id="rangeSeg">
+          <button data-range="day" class="active">7 days</button>
+          <button data-range="week">Week (12 weeks)</button>
+          <button data-range="month">Month (12 months)</button>
+        </div>
+      </div>
+      <div id="chartWrap">
+        <canvas id="chartCanvas"></canvas>
+      </div>
+      <div class="summary-row" id="summaryRow"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Changes saved</div>
+
+<script type="module" src="options.js"></script>
+</body>
+</html>

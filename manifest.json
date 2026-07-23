@@ -1,22 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "URL Time Tracker",
-  "version": "1.0",
-  "description": "Track time spent on a specific URL and alert when time exceeds limit.",
-  
-  "permissions": [
-    "tabs",
-    "storage",
-    "alarms",
-    "notifications"
-  ],
-
-  "host_permissions": [
-    "<all_urls>"
-  ],
-
+  "name": "Limit Social Media Time",
+  "description": "Limit social media usage time. When the limit is reached, it will automatically redirect to the messaging page. Track statistics by day/week/month.",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage", "tabs", "alarms"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "hello_extensions.png"
-  }
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html"
 }

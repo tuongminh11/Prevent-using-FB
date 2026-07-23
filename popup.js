@@ -1,81 +1,54 @@
-document.getElementById("save").onclick = () => {
+import { getSites, getUsageRecord, todayStr } from "./db.js";
 
-    const url = document.getElementById("url").value;
-    const time = document.getElementById("time").value;
+function fmtMinutes(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = Math.floor(totalSeconds % 60);
+  if (m <= 0) return `${s}s`;
+  return `${m} minutes`;
+}
 
-    const action = document.querySelector(
-        'input[name="action"]:checked'
-    ).value;
+async function render() {
+  const listEl = document.getElementById("list");
+  const sites = await getSites();
+  const enabledSites = sites.filter((s) => s.enabled);
 
-    const settings = {
-        url: url,
-        timeLimit: time * 60,
-        action: action
-    };
+  if (enabledSites.length === 0) {
+    listEl.innerHTML = `<div class="empty">No sites currently being tracked.<br/>Go to "Manage & Statistics" to add some.</div>`;
+    return;
+  }
 
-    const DBOpenRequest = window.indexedDB.open("avoidFB", 4);
+  const date = todayStr();
+  const rows = await Promise.all(
+    enabledSites.map(async (site) => {
+      const rec = await getUsageRecord(site.id, date);
+      const usedMin = rec.seconds / 60;
+      const limit = site.limitMinutes || 0;
+      const pct = limit > 0 ? Math.min(100, (usedMin / limit) * 100) : 0;
+      const over = limit > 0 && usedMin >= limit;
+      return `
+        <div class="site-card">
+          <div class="site-top">
+            <span class="site-name">${escapeHtml(site.name)}</span>
+            <span class="site-time">${fmtMinutes(rec.seconds)} / ${limit} minutes</span>
+          </div>
+          <div class="bar-bg">
+            <div class="bar-fill ${over ? "over" : ""}" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+    })
+  );
 
-    // Register two event handlers to act on the database being opened successfully, or not
-    DBOpenRequest.onerror = (event) => {
-        console.log("Error loading database.")
-    };
+  listEl.innerHTML = rows.join("");
+}
 
-    DBOpenRequest.onsuccess = (event) => {
-       console.log("Database initialized.");
-    };
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
 
+document.getElementById("openOptions").addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
+});
 
-    // chrome.storage.local.set(settings, () => {
-    //     alert("Settings saved!");
-    // });
-    // chrome.storage.local.get(null, (data)=>{
-    //     console.log(data);
-    // });
-};
-
-
-// Load saved settings
-window.onload = () => {
-    let db;
-    
-    const DBOpenRequest = window.indexedDB.open("avoidFB", 4);
-
-    // Register two event handlers to act on the database being opened successfully, or not
-    DBOpenRequest.onerror = (event) => {
-        console.log("Error loading database.")
-    };
-
-    DBOpenRequest.onsuccess = (event) => {
-       console.log("Database initialized.");
-    };
-
-    DBOpenRequest.onupgradeneeded = (event) => {
-        const buf = event.target.result;
-        const objectStore = buf.createObjectStore("URLthreshold", { keyPath: ["url", "limit"] });
-
-        objectStore.createIndex("url_idx", "url");
-        
-        objectStore.transaction.oncomplete = (event) => {
-            // Store values in the newly created objectStore.
-            const urlThresholdObjectStore = buf
-                .transaction("URLthreshold", "readwrite")
-                .objectStore("URLthreshold");
-        };
-    }
-
-    // chrome.storage.local.get(["url","timeLimit","action"], (data) => {
-
-    //     if(data.url)
-    //         document.getElementById("url").value = data.url;
-
-    //     if(data.timeLimit)
-    //         document.getElementById("time").value = data.timeLimit / 60;
-
-    //     if(data.action)
-    //         document.querySelector(
-    //             `input[value="${data.action}"]`
-    //         ).checked = true;
-
-    // });
-
-};
+render();
