@@ -36,7 +36,6 @@ function getHostname(url) {
 
 function findMatchingSite(hostname, sites) {
   if (!hostname) return null;
-  console.log(hostname, sites);
   return (
     sites.find(
       (site) =>
@@ -117,7 +116,7 @@ async function redirectAllTabsForSite(site) {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== TICK_ALARM) return;
-  await refreshActiveDomain();
+  await refreshActiveDomain(); // check and redirect if over limit
 
   if (!state.activeDomain || !state.windowFocused) return;
 
@@ -127,11 +126,16 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
   const date = todayStr();
   const secondsToAdd = TICK_PERIOD_MINUTES * 60;
-  const rec = await addUsageSeconds(site.id, date, secondsToAdd);
+  const rec = await getUsageRecord(site.id, date);
 
-  const usedMinutes = rec.seconds / 60;
+  const usedMinutes = 1 + rec.seconds / 60;
+  // add record and redirect all tab 
   if (site.limitMinutes > 0 && usedMinutes >= site.limitMinutes) {
     await redirectAllTabsForSite(site);
+  }
+  else if (site.limitMinutes > 0 && usedMinutes < site.limitMinutes) {
+    console.log(`Adding ${secondsToAdd} seconds to usage for site ${site.id} on ${date}`);
+    await addUsageSeconds(site.id, date, secondsToAdd);
   }
 });
 
