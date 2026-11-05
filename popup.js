@@ -8,6 +8,10 @@ function fmtMinutes(totalSeconds) {
 }
 
 async function render() {
+  try {
+    await chrome.runtime.sendMessage({ type: "REFRESH" });
+  } catch {}
+
   const listEl = document.getElementById("list");
   const sites = await getSites();
   const enabledSites = sites.filter((s) => s.enabled);

@@ -69,6 +69,7 @@ async function loadSitesTable() {
         await saveSite(updated);
         Object.assign(site, updated);
         showToast("Changes saved");
+        chrome.runtime.sendMessage({ type: "REFRESH" }).catch(() => {});
       });
     });
 
@@ -76,6 +77,7 @@ async function loadSitesTable() {
       if (!confirm(`Delete "${site.name}" from the tracking list?`)) return;
       await deleteSite(site.id);
       showToast("Site deleted");
+      chrome.runtime.sendMessage({ type: "REFRESH" }).catch(() => {});
       loadSitesTable();
       loadSiteSelect();
     });
@@ -115,6 +117,7 @@ document.getElementById("addSiteBtn").addEventListener("click", async () => {
   document.getElementById("newLimit").value = "30";
 
   showToast("Site added");
+  chrome.runtime.sendMessage({ type: "REFRESH" }).catch(() => {});
   loadSitesTable();
   loadSiteSelect();
 });
@@ -191,6 +194,10 @@ async function renderChart() {
   const select = document.getElementById("siteSelect");
   const domain = select.value;
   if (!domain) return;
+
+  try {
+    await chrome.runtime.sendMessage({ type: "REFRESH" });
+  } catch {}
 
   const buckets = buildBuckets(currentRange);
   const overallStart = buckets[0].start;
